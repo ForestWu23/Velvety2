@@ -108,7 +108,7 @@ function BrandCarousel() {
   const tx = trackX(index) + dragX
 
   return (
-    <div style={{ padding: '24px 0 48px' }}>
+    <div style={{ padding: '24px 0 32px' }}>
       <div
         ref={viewportRef}
         onPointerDown={onDown}

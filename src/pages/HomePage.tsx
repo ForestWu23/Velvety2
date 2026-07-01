@@ -55,8 +55,6 @@ export default function HomePage() {
       {/* String-wave boundary: black VideoSection2 → warm-white ClientsStrip */}
       <WaveDivider topColor="#000000" bottomColor="#f5f5f3" />
       <ClientsStrip />
-      {/* String-wave boundary: warm-white ClientsStrip → black Footer */}
-      <WaveDivider topColor="#f5f5f3" bottomColor="#0a0a0a" />
       <Footer />
     </div>
   )
