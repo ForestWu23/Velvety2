@@ -402,7 +402,7 @@ export default function Hero() {
       await sleep(520)
       while (typewriterAlive) {
         controls.centerText = ''
-        await typeInto('Hello,,,', { min: 70, max: 210 })
+        await typeInto('Hello...', { min: 70, max: 210 })
         await sleep(760)
         await deleteFrom({ min: 34, max: 90 })
         await sleep(260)

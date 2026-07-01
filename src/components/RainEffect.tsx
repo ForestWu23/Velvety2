@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import Raindrops from '@/rain/raindrops'
 import RainRenderer from '@/rain/rain-renderer'
 import loadImages from '@/rain/image-loader'
@@ -11,29 +11,22 @@ const asset = (path: string) => `${BASE}${path}`
 type Props = {
   className?: string
   citySrc?: string
+  /** Lock rain to the viewport (for window-mask sections). */
+  fixed?: boolean
+  /** When set, skips internal IntersectionObserver. */
+  active?: boolean
+  zIndex?: number
 }
 
 export default function RainEffect({
   className,
   citySrc = asset('/assets/images/city-footer.jpg'),
+  fixed = false,
+  active = true,
+  zIndex,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapRef   = useRef<HTMLDivElement>(null)
-  const [active, setActive] = useState(false)
-
-  useEffect(() => {
-    const wrap = wrapRef.current
-    if (!wrap) return
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setActive(true)
-      },
-      { rootMargin: '200px' },
-    )
-    io.observe(wrap)
-    return () => io.disconnect()
-  }, [])
 
   useEffect(() => {
     if (!active) return
@@ -45,6 +38,20 @@ export default function RainEffect({
     let alive = true
     let raindrops: InstanceType<typeof Raindrops> | null = null
     let renderer: InstanceType<typeof RainRenderer> | null = null
+
+    const measure = () => {
+      if (fixed) return { w: window.innerWidth, h: window.innerHeight }
+      return { w: Math.max(1, wrap.clientWidth), h: Math.max(1, wrap.clientHeight) }
+    }
+
+    const resize = () => {
+      const dpi = window.devicePixelRatio || 1
+      const { w, h } = measure()
+      canvas.width  = w * dpi
+      canvas.height = h * dpi
+      canvas.style.width  = `${w}px`
+      canvas.style.height = `${h}px`
+    }
 
     const init = async () => {
       try {
@@ -60,18 +67,12 @@ export default function RainEffect({
         await city.decode()
         if (!alive) return
 
-        const dpi = window.devicePixelRatio || 1
-        const w   = Math.max(1, wrap.clientWidth)
-        const h   = Math.max(1, wrap.clientHeight)
-        canvas.width  = w * dpi
-        canvas.height = h * dpi
-        canvas.style.width  = `${w}px`
-        canvas.style.height = `${h}px`
+        resize()
 
         raindrops = new Raindrops(
           canvas.width,
           canvas.height,
-          dpi,
+          window.devicePixelRatio || 1,
           images.dropAlpha.img,
           images.dropColor.img,
           {
@@ -125,35 +126,35 @@ export default function RainEffect({
 
     init()
 
-    const onResize = () => {
-      if (!wrap || !canvas) return
-      const dpi = window.devicePixelRatio || 1
-      const w   = Math.max(1, wrap.clientWidth)
-      const h   = Math.max(1, wrap.clientHeight)
-      canvas.width  = w * dpi
-      canvas.height = h * dpi
-      canvas.style.width  = `${w}px`
-      canvas.style.height = `${h}px`
-    }
-
-    const ro = new ResizeObserver(onResize)
-    ro.observe(wrap)
+    const onResize = () => resize()
+    const ro = fixed ? null : new ResizeObserver(onResize)
+    if (ro) ro.observe(wrap)
+    if (fixed) window.addEventListener('resize', onResize)
 
     return () => {
       alive = false
-      ro.disconnect()
+      ro?.disconnect()
+      if (fixed) window.removeEventListener('resize', onResize)
       raindrops?.destroy()
       renderer?.destroy()
       raindrops = null
       renderer = null
     }
-  }, [active, citySrc])
+  }, [active, citySrc, fixed])
+
+  if (!active) return null
 
   return (
     <div
       ref={wrapRef}
       className={className}
-      style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}
+      style={{
+        position: fixed ? 'fixed' : 'absolute',
+        inset: 0,
+        overflow: 'hidden',
+        pointerEvents: 'none',
+        ...(zIndex != null ? { zIndex } : {}),
+      }}
       aria-hidden
     >
       <canvas

@@ -1,6 +1,5 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import RainEffect from '@/components/RainEffect'
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
 const img  = (f: string) => `${BASE}/assets/images/${f}`
@@ -12,11 +11,29 @@ const NAV = [
   { label: 'Projects',   to: '/projects'},
 ]
 
-const CREAM   = 'rgba(255,253,245,1)'
-const CREAM70 = 'rgba(255,253,245,0.70)'
-const CREAM85 = 'rgba(255,253,245,0.85)'
-const CREAM60 = 'rgba(255,253,245,0.60)'
-const CREAM20 = 'rgba(255,253,245,0.20)'
+const KEY_COUNT = 6
+
+const LIGHT = {
+  muted:   'rgba(255,253,245,0.70)',
+  body:    'rgba(255,253,245,0.85)',
+  faint:   'rgba(255,253,245,0.60)',
+  email:   '#fff',
+  border:  'rgba(255,253,245,0.20)',
+  inputBg: 'rgba(255,255,255,0.05)',
+  input:   '#fff',
+  underline: 'rgba(255,253,245,0.85)',
+}
+
+const DARK = {
+  muted:   'rgba(8,9,11,0.68)',
+  body:    'rgba(8,9,11,0.85)',
+  faint:   'rgba(8,9,11,0.60)',
+  email:   '#08090b',
+  border:  'rgba(8,9,11,0.18)',
+  inputBg: 'rgba(8,9,11,0.05)',
+  input:   '#08090b',
+  underline: 'rgba(8,9,11,0.85)',
+}
 
 const IconPin = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -34,85 +51,164 @@ const IconPhone = () => (
   </svg>
 )
 
+type Palette = typeof LIGHT
+
+type BodyProps = {
+  palette: Palette
+  hovered: string | null
+  setHovered?: (v: string | null) => void
+  interactive?: boolean
+}
+
+function FooterBody({ palette: c, hovered, setHovered, interactive = false }: BodyProps) {
+  return (
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '64px 40px 40px' }}>
+      <img src={img('logoSmall2.png')} alt="VelvetY" style={{ height: 48, width: 'auto', display: 'block' }} />
+
+      <div style={{ marginTop: 48, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 48 }}>
+        <div>
+          <p style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.28em', textTransform: 'uppercase', color: c.muted, margin: 0 }}>Let&rsquo;s start working together</p>
+          <a
+            href="mailto:info@velvetydesign.com"
+            style={{ display: 'inline-block', marginTop: 16, fontSize: 'clamp(22px, 3vw, 34px)', fontWeight: 800, letterSpacing: '-0.04em', color: c.email, textDecoration: 'none', lineHeight: 1.1, pointerEvents: interactive ? 'auto' : 'none' }}
+          >
+            info@velvetydesign.com
+          </a>
+          <ul style={{ marginTop: 32, listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, color: c.body }}>
+            <li style={{ display: 'flex', alignItems: 'center', gap: 10 }}><IconPin /><span>2203B 22nd AVE S, Seattle, WA 98144</span></li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <IconMail />
+              <a href="mailto:info@velvetydesign.com" style={{ color: 'inherit', textDecoration: 'none', pointerEvents: interactive ? 'auto' : 'none' }}>info@velvetydesign.com</a>
+            </li>
+            <li style={{ display: 'flex', alignItems: 'center', gap: 10 }}><IconPhone /><span>(206) 601-5969</span></li>
+          </ul>
+        </div>
+
+        <div>
+          <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.28em', textTransform: 'uppercase', color: c.muted, margin: 0 }}>Company</p>
+          <ul style={{ marginTop: 20, listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14, color: c.body }}>
+            {NAV.map(n => (
+              <li key={n.label}>
+                <Link
+                  to={n.to}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: c.body, textDecoration: 'none', pointerEvents: interactive ? 'auto' : 'none' }}
+                  onMouseEnter={() => setHovered?.(n.label)}
+                  onMouseLeave={() => setHovered?.(null)}
+                >
+                  {n.label}
+                  <span style={{ display: 'block', height: 1, background: c.underline, width: hovered === n.label ? 20 : 0, transition: 'width 0.3s' }} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.28em', textTransform: 'uppercase', color: c.muted, margin: 0 }}>Subscribe</p>
+          <form
+            onSubmit={e => e.preventDefault()}
+            style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 8, borderRadius: 999, border: `1px solid ${c.border}`, background: c.inputBg, padding: '4px 4px 4px 16px', pointerEvents: interactive ? 'auto' : 'none' }}
+          >
+            <input type="email" placeholder="Enter your email" aria-label="Email" style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: c.input, minWidth: 0 }} />
+            <button type="submit" style={{ flexShrink: 0, background: c.email, color: c.email === '#fff' ? '#0a0a0a' : '#fff', border: 'none', borderRadius: 999, padding: '8px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Submit</button>
+          </form>
+        </div>
+      </div>
+
+      <p style={{ marginTop: 56, paddingTop: 24, textAlign: 'center', fontSize: 12, color: c.faint }}>
+        © Copyright 2026 by VELVETY LLC
+      </p>
+    </div>
+  )
+}
+
+function keyIndexAtX(clientX: number, keyEls: (HTMLDivElement | null)[]) {
+  for (let i = 0; i < keyEls.length; i++) {
+    const el = keyEls[i]
+    if (!el) continue
+    const r = el.getBoundingClientRect()
+    if (clientX >= r.left && clientX < r.right) return i
+  }
+  return -1
+}
+
 export default function Footer() {
-  const [hovered, setHovered] = useState<string | null>(null)
+  const [hovered, setHovered]     = useState<string | null>(null)
+  const [activeKey, setActiveKey] = useState<number | null>(null)
+  const [darkClip, setDarkClip]   = useState('inset(0 100% 0 0)')
+
+  const footerRef = useRef<HTMLElement>(null)
+  const keyRefs   = useRef<(HTMLDivElement | null)[]>([])
+
+  const updateDarkClip = useCallback((keyIdx: number | null) => {
+    if (keyIdx === null) {
+      setDarkClip('inset(0 100% 0 0)')
+      return
+    }
+    const footer = footerRef.current
+    const key    = keyRefs.current[keyIdx]
+    if (!footer || !key) return
+    const fr = footer.getBoundingClientRect()
+    const kr = key.getBoundingClientRect()
+    const left  = Math.max(0, kr.left - fr.left)
+    const right = Math.max(0, fr.right - kr.right)
+    setDarkClip(`inset(0 ${right}px 0 ${left}px)`)
+  }, [])
+
+  const onMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const idx = keyIndexAtX(e.clientX, keyRefs.current)
+    if (idx === activeKey) return
+    const next = idx >= 0 ? idx : null
+    setActiveKey(next)
+    updateDarkClip(next)
+  }
+
+  const onMouseLeave = () => {
+    setActiveKey(null)
+    updateDarkClip(null)
+  }
 
   return (
     <footer
+      ref={footerRef}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
       style={{
         position: 'relative',
         overflow: 'hidden',
         zIndex: 3,
         minHeight: 520,
-        color: CREAM,
+        background: '#f5f5f3',
         fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
       }}
     >
-      <RainEffect citySrc={img('city-footer.jpg')} />
+      <div className="footer-piano-white" aria-hidden />
+      <div className="footer-piano-curtain" aria-hidden>
+        {Array.from({ length: KEY_COUNT }, (_, i) => (
+          <div
+            key={i}
+            ref={el => { keyRefs.current[i] = el }}
+            className={`footer-piano-key fk${i + 1}${activeKey === i ? ' is-lifted' : ''}`}
+          />
+        ))}
+      </div>
 
-      {/* Dark overlay so footer text stays readable over rain */}
+      {/* Light text — default on dark keys */}
+      <div className="footer-content-layer footer-content-layer--interactive" style={{ zIndex: 2 }}>
+        <FooterBody palette={LIGHT} hovered={hovered} setHovered={setHovered} interactive />
+      </div>
+
+      {/* Dark text — clipped to lifted key column over white base */}
       <div
+        className="footer-content-layer"
         style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.72) 100%)',
-          pointerEvents: 'none',
-          zIndex: 1,
+          zIndex: 3,
+          clipPath: darkClip,
+          transition: 'clip-path 0.08s linear',
         }}
-      />
-
-      <div style={{ position: 'relative', zIndex: 2 }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '64px 40px 40px' }}>
-          <img src={img('logoSmall2.png')} alt="VelvetY" style={{ height: 48, width: 'auto', display: 'block' }} />
-
-          <div style={{ marginTop: 48, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 48 }}>
-            <div>
-              <p style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.28em', textTransform: 'uppercase', color: CREAM70, margin: 0 }}>Let&rsquo;s start working together</p>
-              <a href="mailto:info@velvetydesign.com" style={{ display: 'inline-block', marginTop: 16, fontSize: 'clamp(22px, 3vw, 34px)', fontWeight: 800, letterSpacing: '-0.04em', color: '#fff', textDecoration: 'none', lineHeight: 1.1 }}>
-                info@velvetydesign.com
-              </a>
-              <ul style={{ marginTop: 32, listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, color: CREAM85 }}>
-                <li style={{ display: 'flex', alignItems: 'center', gap: 10 }}><IconPin /><span>2203B 22nd AVE S, Seattle, WA 98144</span></li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <IconMail />
-                  <a href="mailto:info@velvetydesign.com" style={{ color: 'inherit', textDecoration: 'none' }}>info@velvetydesign.com</a>
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: 10 }}><IconPhone /><span>(206) 601-5969</span></li>
-              </ul>
-            </div>
-
-            <div>
-              <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.28em', textTransform: 'uppercase', color: CREAM70, margin: 0 }}>Company</p>
-              <ul style={{ marginTop: 20, listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14, color: CREAM85 }}>
-                {NAV.map(n => (
-                  <li key={n.label}>
-                    <Link
-                      to={n.to}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: CREAM85, textDecoration: 'none' }}
-                      onMouseEnter={() => setHovered(n.label)}
-                      onMouseLeave={() => setHovered(null)}
-                    >
-                      {n.label}
-                      <span style={{ display: 'block', height: 1, background: CREAM85, width: hovered === n.label ? 20 : 0, transition: 'width 0.3s' }} />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.28em', textTransform: 'uppercase', color: CREAM70, margin: 0 }}>Subscribe</p>
-              <form onSubmit={e => e.preventDefault()} style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 8, borderRadius: 999, border: `1px solid ${CREAM20}`, background: 'rgba(255,255,255,0.05)', padding: '4px 4px 4px 16px' }}>
-                <input type="email" placeholder="Enter your email" aria-label="Email" style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: '#fff', minWidth: 0 }} />
-                <button type="submit" style={{ flexShrink: 0, background: '#fff', color: '#0a0a0a', border: 'none', borderRadius: 999, padding: '8px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Submit</button>
-              </form>
-            </div>
-          </div>
-
-          <p style={{ marginTop: 56, paddingTop: 24, textAlign: 'center', fontSize: 12, color: CREAM60 }}>
-            © Copyright 2026 by VELVETY LLC
-          </p>
-        </div>
+        aria-hidden
+      >
+        <FooterBody palette={DARK} hovered={hovered} />
       </div>
     </footer>
   )
