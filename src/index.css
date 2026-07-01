@@ -69,6 +69,8 @@ body::after {
   z-index: 4;
   height: 200vh;
   background: transparent;
+  /* Transparent shell must not block wheel/clicks on sections below (z-index 2/3) */
+  pointer-events: none;
 }
 
 .site-shell {
@@ -180,6 +182,12 @@ body::after {
   display: block;
   opacity: calc(1 - min(max((var(--p, 0) - 0.42) * 6.2, 0), 1));
   transition: opacity 0.08s linear;
+  /* auto during intro so native wheel scroll works; pass-through class added via JS past intro */
+  pointer-events: auto;
+}
+
+.orb-canvas.pass-through {
+  pointer-events: none;
 }
 
 /* ── Waves ──────────────────────────────────────────────── */
@@ -249,12 +257,13 @@ body::after {
   opacity: 1;
 }
 
-.piano-key.k1 { left: 0; width: 8vw; }
-.piano-key.k2 { left: 8vw; width: 21vw; }
-.piano-key.k3 { left: 29vw; width: 21vw; }
-.piano-key.k4 { left: 50vw; width: 21vw; }
-.piano-key.k5 { left: 71vw; width: 21vw; }
-.piano-key.k6 { left: 92vw; width: 8vw; border-right: 0; }
+/* Each key extends 1px past its logical boundary to close sub-pixel gaps */
+.piano-key.k1 { left: 0;              width: calc(8vw  + 1px); }
+.piano-key.k2 { left: 8vw;            width: calc(21vw + 1px); }
+.piano-key.k3 { left: 29vw;           width: calc(21vw + 1px); }
+.piano-key.k4 { left: 50vw;           width: calc(21vw + 1px); }
+.piano-key.k5 { left: 71vw;           width: calc(21vw + 1px); }
+.piano-key.k6 { left: 92vw;           width: 8vw; border-right: 0; }
 
 /* ── White guide (revealed as piano keys lift) ──────────── */
 .white-guide {
@@ -434,10 +443,11 @@ body::after {
     grid-column: span 1;
   }
 
-  .piano-key.k1 { left: 0; width: 10vw; }
-  .piano-key.k2 { left: 10vw; width: 20vw; }
-  .piano-key.k3 { left: 30vw; width: 20vw; }
-  .piano-key.k4 { left: 50vw; width: 20vw; }
-  .piano-key.k5 { left: 70vw; width: 20vw; }
+  .piano-key.k1 { left: 0;    width: calc(10vw + 1px); }
+  .piano-key.k2 { left: 10vw; width: calc(20vw + 1px); }
+  .piano-key.k3 { left: 30vw; width: calc(20vw + 1px); }
+  .piano-key.k4 { left: 50vw; width: calc(20vw + 1px); }
+  .piano-key.k5 { left: 70vw; width: calc(20vw + 1px); }
   .piano-key.k6 { left: 90vw; width: 10vw; border-right: 0; }
 }
+

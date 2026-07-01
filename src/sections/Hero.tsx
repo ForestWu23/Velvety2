@@ -420,13 +420,19 @@ export default function Hero() {
     /* ── Intro scroll state ─────────────────────────────── */
     const introState = { virtualP: 0, unlocked: false, touchY: null as number | null }
     const ORB_UNLOCK_POINT = 0.62
-    const PIANO_START = 0.62       // match unlock point → no lag
+    const PIANO_START = 0.62
     const PIANO_LAST_KEY_START = 0.82
     const PIANO_SPAN = 0.16
 
     function introMaxScroll() {
       const intro = document.querySelector('.intro-scroll')
       return intro ? Math.max(1, intro.scrollHeight - innerHeight) : Math.max(1, document.documentElement.scrollHeight - innerHeight)
+    }
+
+    /** Past intro zone → orb stops blocking clicks on lower sections */
+    function updateOrbPassThrough() {
+      const max = introMaxScroll()
+      canvas.classList.toggle('pass-through', scrollY > max - 2)
     }
 
     function setIntroProgress(p: number) {
@@ -456,12 +462,20 @@ export default function Hero() {
     function syncScrollDriven() {
       const max = introMaxScroll()
       const pageP = clamp(scrollY / max, 0, 1)
-      if (scrollY <= 1 && !introState.unlocked) { setIntroProgress(introState.virtualP); return }
+      if (scrollY <= 1 && !introState.unlocked) {
+        setIntroProgress(introState.virtualP)
+        updateOrbPassThrough()
+        return
+      }
       if (scrollY <= 1 && introState.unlocked && introState.virtualP < ORB_UNLOCK_POINT) {
-        introState.unlocked = false; setIntroProgress(introState.virtualP); return
+        introState.unlocked = false
+        setIntroProgress(introState.virtualP)
+        updateOrbPassThrough()
+        return
       }
       const p = ORB_UNLOCK_POINT + pageP * (1 - ORB_UNLOCK_POINT)
       setIntroProgress(p)
+      updateOrbPassThrough()
     }
 
     function consumeDelta(deltaY: number, event?: Event) {
@@ -496,6 +510,11 @@ export default function Hero() {
 
     function onWheel(e: WheelEvent) {
       if (consumeDelta(e.deltaY, e)) return
+      // Past intro: orb is pass-through so native wheel won't move the page — drive manually
+      if (canvas.classList.contains('pass-through')) {
+        if (e.cancelable) e.preventDefault()
+        window.scrollBy(0, e.deltaY)
+      }
       requestAnimationFrame(syncScrollDriven)
     }
     function onTouchStart(e: TouchEvent) {
@@ -505,7 +524,11 @@ export default function Hero() {
       const t = e.touches[0]; if (!t || introState.touchY === null) return
       const deltaY = introState.touchY - t.clientY
       introState.touchY = t.clientY
-      consumeDelta(deltaY, e)
+      if (consumeDelta(deltaY, e)) return
+      if (canvas.classList.contains('pass-through')) {
+        if (e.cancelable) e.preventDefault()
+        window.scrollBy(0, deltaY)
+      }
     }
     function onKeyDown(e: KeyboardEvent) {
       const keys: Record<string, number> = { ArrowDown: 80, PageDown: 360, ' ': 360, ArrowUp: -80, PageUp: -360, Home: -9999 }
@@ -522,7 +545,7 @@ export default function Hero() {
     }
 
     /* ── Boot ───────────────────────────────────────────── */
-    resize(); makeField(); syncScrollDriven()
+    resize(); makeField(); syncScrollDriven(); updateOrbPassThrough()
     raf = requestAnimationFrame(draw)
     runTypewriter()
 
@@ -550,6 +573,7 @@ export default function Hero() {
       document.removeEventListener('visibilitychange', onVisibilityChange)
       document.documentElement.style.removeProperty('--p')
       document.documentElement.style.removeProperty('--white-guide-opacity')
+      canvas.classList.remove('pass-through')
     }
   }, [])
 
