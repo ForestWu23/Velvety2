@@ -38,9 +38,11 @@ function crossfadeEase(index: number, total: number) {
 type Props = {
   slides: string[]
   alt?: string
+  /** When false, animation pauses; when true again, restarts from first slide */
+  active?: boolean
 }
 
-export default function FastCutCarousel({ slides, alt = 'VelvetY showcase' }: Props) {
+export default function FastCutCarousel({ slides, alt = 'VelvetY showcase', active = true }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const [reduced, setReduced] = useState(false)
   const [ready, setReady]       = useState(false)
@@ -78,7 +80,7 @@ export default function FastCutCarousel({ slides, alt = 'VelvetY showcase' }: Pr
   }, [slides, reduced])
 
   useEffect(() => {
-    if (reduced || !ready || !wrapRef.current) return
+    if (reduced || !ready || !wrapRef.current || !active) return
 
     const layers = Array.from(
       wrapRef.current.querySelectorAll<HTMLElement>('[data-fastcut-slide]'),
@@ -116,7 +118,7 @@ export default function FastCutCarousel({ slides, alt = 'VelvetY showcase' }: Pr
     return () => {
       tl.kill()
     }
-  }, [ready, reduced, slides])
+  }, [ready, reduced, slides, active])
 
   if (slides.length === 0) return null
 

@@ -1,3 +1,4 @@
+import { useInView } from '@/hooks/useInView'
 import WindowVideoCard from '@/components/WindowVideoCard'
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
@@ -25,8 +26,11 @@ const SHOWCASE_SLIDES = [
 ].map(gallery)
 
 export default function ShowcaseSection() {
+  const { ref, inView } = useInView<HTMLElement>()
+
   return (
     <section
+      ref={ref}
       style={{
         position: 'relative',
         zIndex: 3,
@@ -60,7 +64,7 @@ export default function ShowcaseSection() {
           }}
         />
         <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
-          <WindowVideoCard badge="#VELVETY" slides={SHOWCASE_SLIDES} />
+          <WindowVideoCard badge="#VELVETY" slides={SHOWCASE_SLIDES} active={inView} />
         </div>
       </div>
     </section>

@@ -1,208 +1,101 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 
 const BASE   = import.meta.env.BASE_URL.replace(/\/$/, '')
 const imgSrc = (f: string) => `${BASE}/assets/images/${f}`
 
-const logos = [
+/* ── Brand logo marquee (ported from velvety Clients.tsx) ─────── */
+const LOGOS = [
   { src: imgSrc('HuagenLogo5x5.png'), alt: 'Huagen'     },
   { src: imgSrc('ThriveLogo.png'),    alt: 'Thrive'     },
   { src: imgSrc('MajorPetsLogo.png'), alt: 'Major Pets' },
   { src: imgSrc('HomeLinkLogo.jpg'),  alt: 'HomeLink'   },
 ]
+const LOGO_REEL = [...LOGOS, ...LOGOS, ...LOGOS]
+const MARQUEE_SPEED = 0.6
 
-const FF       = 'Inter, ui-sans-serif, system-ui, sans-serif'
-const LINE     = '1px solid rgba(0,0,0,0.09)'
-const N        = logos.length
-const SLOT_W   = 180
-const SLOT_GAP = 64
-const STEP     = SLOT_W + SLOT_GAP
-
-function clamp(v: number, lo: number, hi: number) {
-  return Math.max(lo, Math.min(hi, v))
-}
-
-/* ── Brand carousel ───────────────────────────────────────────────── */
 function BrandCarousel() {
-  const [index, setIndex]       = useState(0)
-  const [dragX, setDragX]       = useState(0)
-  const [dragging, setDragging] = useState(false)
+  const trackRef  = useRef<HTMLDivElement>(null)
+  const wrapRef   = useRef<HTMLDivElement>(null)
+  const xRef      = useRef(0)
+  const rafRef    = useRef(0)
+  const pausedRef = useRef(false)
 
-  const viewportRef = useRef<HTMLDivElement>(null)
-  const indexRef  = useRef(0)
-  const dragStart = useRef({ x: 0, trackX: 0, pointerId: -1 })
-  const movedRef  = useRef(0)
-  const idleRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    const track = trackRef.current
+    const wrap  = wrapRef.current
+    if (!track || !wrap) return
 
-  const trackX = (i: number) => -i * STEP
-
-  const goTo = (i: number) => {
-    const next = clamp(i, 0, N - 1)
-    indexRef.current = next
-    setIndex(next)
-    setDragX(0)
-  }
-
-  const clearIdle = () => { if (idleRef.current) clearTimeout(idleRef.current) }
-  const armIdle = () => {
-    clearIdle()
-    idleRef.current = setTimeout(() => {
-      goTo((indexRef.current + 1) % N)
-      armIdle()
-    }, 5000)
-  }
-
-  useEffect(() => { armIdle(); return clearIdle }, [])
-
-  /* pointer on viewport */
-  const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId)
-    clearIdle()
-    setDragging(true)
-    movedRef.current = 0
-    dragStart.current = { x: e.clientX, trackX: trackX(indexRef.current), pointerId: e.pointerId }
-  }
-
-  const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragging) return
-    const dx = e.clientX - dragStart.current.x
-    movedRef.current = Math.max(movedRef.current, Math.abs(dx))
-    const min = trackX(N - 1)
-    setDragX(clamp(dragStart.current.trackX + dx, min, 0) - trackX(indexRef.current))
-  }
-
-  const onUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragging) return
-    setDragging(false)
-    try { e.currentTarget.releasePointerCapture(e.pointerId) } catch { /* noop */ }
-
-    if (movedRef.current < 5) {
-      const rect = e.currentTarget.getBoundingClientRect()
-      const localX = e.clientX - rect.left
-      const currentTx = trackX(indexRef.current) + dragX
-      const viewportCenter = rect.width / 2
-
-      let nearest = 0
-      let nearestDist = Number.POSITIVE_INFINITY
-      for (let i = 0; i < N; i++) {
-        const logoCenter = viewportCenter + i * STEP + currentTx
-        const d = Math.abs(localX - logoCenter)
-        if (d < nearestDist) {
-          nearestDist = d
-          nearest = i
-        }
+    const tick = () => {
+      if (!pausedRef.current) {
+        xRef.current -= MARQUEE_SPEED
+        const oneSetWidth = track.scrollWidth / 3
+        if (Math.abs(xRef.current) >= oneSetWidth) xRef.current = 0
+        track.style.transform = `translateX(${xRef.current}px)`
       }
 
-      // click on logo zone -> jump to exact logo
-      if (nearestDist <= SLOT_W * 0.5) {
-        goTo(nearest)
-      } else {
-        goTo(e.clientX < rect.left + rect.width / 2 ? indexRef.current - 1 : indexRef.current + 1)
-      }
-    } else {
-      const total = trackX(indexRef.current) + dragX
-      goTo(Math.round(-total / STEP))
+      const wrapRect = wrap.getBoundingClientRect()
+      const centerX  = wrapRect.left + wrapRect.width / 2
+      const halfZone = wrapRect.width * 0.28
+
+      track.querySelectorAll<HTMLElement>('[data-logo-item]').forEach((item) => {
+        const r      = item.getBoundingClientRect()
+        const itemCX = r.left + r.width / 2
+        const dist   = Math.abs(itemCX - centerX)
+        const t      = Math.max(0, 1 - dist / halfZone)
+        item.style.transform = `scale(${1 + t * 0.65})`
+        item.style.opacity   = String(0.55 + t * 0.45)
+      })
+
+      rafRef.current = requestAnimationFrame(tick)
     }
-    armIdle()
-  }
 
-  const tx = trackX(index) + dragX
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [])
 
   return (
-    <div style={{ padding: '24px 0 32px' }}>
+    <div style={{ padding: '24px 0 40px' }}>
       <div
-        ref={viewportRef}
-        onPointerDown={onDown}
-        onPointerMove={onMove}
-        onPointerUp={onUp}
-        onPointerCancel={onUp}
-        style={{
-          position:    'relative',
-          overflow:    'hidden',
-          height:      110,
-          cursor:      dragging ? 'grabbing' : 'grab',
-          touchAction: 'none',
-          userSelect:  'none',
-        }}
+        ref={wrapRef}
+        className="mask-fade-edges"
+        onMouseEnter={() => { pausedRef.current = true }}
+        onMouseLeave={() => { pausedRef.current = false }}
+        style={{ position: 'relative', overflow: 'hidden' }}
       >
         <div
+          ref={trackRef}
           style={{
-            display:     'flex',
-            alignItems:  'center',
-            height:      '100%',
-            gap:         SLOT_GAP,
-            paddingLeft: `calc(50% - ${SLOT_W / 2}px)`,
-            paddingRight:`calc(50% - ${SLOT_W / 2}px)`,
-            transform:   `translateX(${tx}px)`,
-            transition:  dragging ? 'none' : 'transform 0.45s cubic-bezier(0.22,1,0.36,1)',
-            willChange:  'transform',
-            pointerEvents: 'auto',
+            display: 'flex',
+            width: 'max-content',
+            alignItems: 'center',
+            gap: 96,
+            paddingBlock: 24,
+            willChange: 'transform',
           }}
         >
-          {logos.map((logo, i) => {
-            const dist = Math.abs(i - index)
-            const t    = clamp(dist, 0, 2) / 2
-            return (
-              <button
-                key={logo.alt}
-                type="button"
-                onClick={() => {
-                  clearIdle()
-                  goTo(i)
-                  armIdle()
-                }}
-                style={{
-                  flexShrink:     0,
-                  width:          SLOT_W,
-                  height:         '100%',
-                  display:        'flex',
-                  alignItems:     'center',
-                  justifyContent: 'center',
-                  background:     'transparent',
-                  border:         'none',
-                  padding:        0,
-                  cursor:         'pointer',
-                  transform:      `scale(${1 - t * 0.2})`,
-                  opacity:        1 - t * 0.55,
-                  filter:         `grayscale(${t * 55}%)`,
-                  transition:     dragging ? 'none' : 'transform 0.4s, opacity 0.4s, filter 0.4s',
-                }}
-              >
-                <img
-                  src={logo.src}
-                  alt={logo.alt}
-                  draggable={false}
-                  style={{ maxHeight: 60, maxWidth: '90%', objectFit: 'contain', display: 'block' }}
-                />
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      <div style={{ textAlign: 'center', marginTop: 20 }}>
-        <p style={{ margin: '0 0 14px', fontSize: 13, fontWeight: 500, letterSpacing: '0.06em', color: '#374151', fontFamily: FF }}>
-          {logos[index].alt}
-        </p>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
-          {logos.map((logo, i) => (
-            <button
-              key={logo.alt}
-              type="button"
-              aria-label={`Show ${logo.alt}`}
-              onClick={() => { clearIdle(); goTo(i); armIdle() }}
-              style={{
-                width: i === index ? 22 : 7, height: 7, borderRadius: 4,
-                border: 'none', padding: 0, cursor: 'pointer',
-                background: i === index ? '#08090b' : '#d1d5db',
-                transition: 'width 0.25s, background 0.25s',
-              }}
-            />
+          {LOGO_REEL.map((logo, idx) => (
+            <div
+              key={`${logo.alt}-${idx}`}
+              data-logo-item
+              style={{ flexShrink: 0, transformOrigin: 'center center' }}
+            >
+              <img
+                src={logo.src}
+                alt={logo.alt}
+                draggable={false}
+                style={{ display: 'block', height: 56, width: 'auto', maxWidth: 180, objectFit: 'contain' }}
+              />
+            </div>
           ))}
         </div>
       </div>
     </div>
   )
 }
+
+const FF   = 'Inter, ui-sans-serif, system-ui, sans-serif'
+const LINE = '1px solid rgba(0,0,0,0.09)'
 
 /* ── Services + section ───────────────────────────────────────────── */
 const services = [
@@ -232,7 +125,7 @@ export default function ClientsStrip() {
             <p style={{ margin: '0 0 32px', fontSize: 'clamp(13px,1.05vw,15px)', lineHeight: 1.74, color: '#4b5563', maxWidth: 440 }}>
               The team is a mix — creative, technical, practical, opinionated. Some of us make noise, some make spreadsheets.
             </p>
-            <a href="#" style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#08090b', textDecoration: 'none' }}>Our Work ↗</a>
+            <Link to="/about" style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#08090b', textDecoration: 'none' }}>About ↗</Link>
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderLeft: LINE, flex: '1 0 0' }}>

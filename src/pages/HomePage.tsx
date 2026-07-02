@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import ColorBends from '@/components/ColorBends'
 import WaveDivider from '@/components/WaveDivider'
 import Hero from '@/sections/Hero'
@@ -9,6 +10,13 @@ import ClientsStrip from '@/sections/ClientsStrip'
 import Footer from '@/sections/Footer'
 
 export default function HomePage() {
+  useEffect(() => {
+    if (window.location.hash !== '#work') return
+    requestAnimationFrame(() => {
+      document.getElementById('work')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [])
+
   return (
     <div style={{ background: '#000' }}>
       {/*

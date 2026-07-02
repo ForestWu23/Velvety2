@@ -1,36 +1,35 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
-/*
- * Faithful React port of threejs_gsap_homepage_cylinder_v3.html
- *
- * Text changes from original:
- *   h1  →  "Digital Brands / That Move"
- *   intro → as specified
- *   CTA buttons removed, nav removed
- *
- * Architecture vs the standalone HTML:
- *   The HTML uses position:fixed canvas + 360 vh scroll space to drive animation.
- *   Here the section is self-contained (100 vh, normal flow).
- *   The cylinder auto-rotates; drag is the only interaction (no scroll driving).
- *
- * React StrictMode guard:
- *   StrictMode double-invokes effects in dev. We guard with `initialized` ref so
- *   Three.js only mounts once on the canvas (avoids double-context creation).
- */
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
+const cyl  = (f: string) => `${BASE}/assets/cylinder/${f}`
 
+/* 8 landscape project screens — Brands Redesign cylinder */
 const PHOTOS = [
-  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80',
-  'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80',
-  'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1600&q=80',
-  'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80',
-  'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1600&q=80',
-  'https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1600&q=80',
-  'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1600&q=80',
-  'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=1600&q=80',
-  'https://images.unsplash.com/photo-1526772662000-3f88f10405ff?auto=format&fit=crop&w=1600&q=80',
-  'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1600&q=80',
+  cyl('amazon-landing.jpg'),
+  cyl('buyerfolio.jpg'),
+  cyl('green-apple.jpg'),
+  cyl('huagen.png'),
+  cyl('kindle.png'),
+  cyl('micro-ingredients.png'),
+  cyl('nutribites.png'),
+  cyl('ridgeline-homes.png'),
 ]
+
+/** Crop texture like object-fit: cover for panel aspect ratio */
+function fitTextureCover(texture: THREE.Texture, image: HTMLImageElement, panelAspect: number) {
+  const imageAspect = image.width / image.height
+  texture.colorSpace = THREE.SRGBColorSpace
+  if (imageAspect > panelAspect) {
+    const scale = panelAspect / imageAspect
+    texture.repeat.set(scale, 1)
+    texture.offset.set((1 - scale) / 2, 0)
+  } else {
+    const scale = imageAspect / panelAspect
+    texture.repeat.set(1, scale)
+    texture.offset.set(0, (1 - scale) / 2)
+  }
+}
 
 export default function CylinderSection() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -64,34 +63,53 @@ export default function CylinderSection() {
     scene.add(group)
 
     const textureLoader = new THREE.TextureLoader()
-    textureLoader.setCrossOrigin('anonymous')
 
     const panelCount  = PHOTOS.length
-    const radius      = 3.45
-    const panelWidth  = 2.05
-    const panelHeight = 2.9
+    const radius      = 4.35
+    /* landscape panels — width < arc spacing to avoid seam overlap */
+    const panelWidth  = 2.88
+    const panelHeight = 1.88
+    const panelAspect = panelWidth / panelHeight
+    const arcAngle    = panelWidth / radius
     const panels: THREE.Mesh[] = []
+    const textures: THREE.Texture[] = []
 
-    function createCurvedPanelGeometry(w: number, h: number, r: number, arcAngle: number) {
-      const geo = new THREE.PlaneGeometry(w, h, 34, 10)
+    /* default diagonal tilt: left high, right low */
+    const DEFAULT_TILT_X = -0.08
+    const DEFAULT_TILT_Z =  0.13
+    /* auto-spin: counter-clockwise (panels drift right → left on screen) */
+    const AUTO_SPIN = 0.0015
+
+    function createCurvedPanelGeometry(w: number, h: number, r: number, arc: number) {
+      const geo = new THREE.PlaneGeometry(w, h, 36, 6)
       const pos = geo.attributes.position as THREE.BufferAttribute
       const uv  = geo.attributes.uv       as THREE.BufferAttribute
       for (let i = 0; i < pos.count; i++) {
-        const theta = (uv.getX(i) - 0.5) * arcAngle
+        const theta = (uv.getX(i) - 0.5) * arc
         pos.setXYZ(i, Math.sin(theta) * r, pos.getY(i), r - Math.cos(theta) * r)
+      }
+      /* inward panels are viewed from outside — flip U so screenshots read L→R */
+      for (let i = 0; i < uv.count; i++) {
+        uv.setX(i, 1 - uv.getX(i))
       }
       geo.computeVertexNormals()
       return geo
     }
-    const geometry = createCurvedPanelGeometry(panelWidth, panelHeight, radius, panelWidth / radius)
+    const geometry = createCurvedPanelGeometry(panelWidth, panelHeight, radius, arcAngle)
 
     PHOTOS.forEach((url, index) => {
-      const texture = textureLoader.load(url, () => {
-        texture.colorSpace = THREE.SRGBColorSpace
-        texture.anisotropy = renderer.capabilities.getMaxAnisotropy()
+      const texture = textureLoader.load(url, (tex) => {
+        const img = tex.image as HTMLImageElement
+        if (img?.width) fitTextureCover(tex, img, panelAspect)
+        tex.anisotropy = renderer.capabilities.getMaxAnisotropy()
       })
+      textures.push(texture)
       const material = new THREE.MeshBasicMaterial({
-        map: texture, side: THREE.DoubleSide, transparent: true, opacity: 0,
+        map: texture,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0,
+        depthWrite: true,
       })
       const panel = new THREE.Mesh(geometry, material)
       const angle = (index / panelCount) * Math.PI * 2
@@ -100,7 +118,7 @@ export default function CylinderSection() {
       panel.rotation.y    = angle + Math.PI
       panel.userData.baseAngle  = angle
       panel.userData.phase      = Math.random() * Math.PI * 2
-      panel.userData.fadeStart  = performance.now() + 0.06 * index * 1000
+      panel.userData.fadeStart  = performance.now() + index * 80
       innerGroup.add(panel)
       panels.push(panel)
     })
@@ -110,11 +128,11 @@ export default function CylinderSection() {
     /* ── State (mirrors HTML) ────────────────────────────── */
     const state = {
       targetY: 0,        currentY: 0,
-      autoVelocity: 0.0016,
+      autoVelocity: AUTO_SPIN,
       scrollVelocity: 0,
       dragVelocity: 0,
-      targetX: -0.06,    currentX: -0.06,
-      targetZ: 0,        currentZ: 0,
+      targetX: DEFAULT_TILT_X,    currentX: DEFAULT_TILT_X,
+      targetZ: DEFAULT_TILT_Z,      currentZ: DEFAULT_TILT_Z,
       cameraX: 0,        cameraY: 0,
       scrollDirection: 1,
       lastScrollY: window.scrollY,
@@ -124,11 +142,11 @@ export default function CylinderSection() {
 
     const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
 
-    /* Camera pulled back → cylinder appears smaller */
+    /* Push cylinder up-right; diagonal tilt clears bottom-left copy */
     function layout() {
       group.position.x  = sizes.width < 760 ? 0.25 : 1.75
       group.position.y  = sizes.width < 760 ? 0.75 : 0.25
-      camera.position.z = sizes.width < 760 ? 13.0 : 11.0
+      camera.position.z = sizes.width < 760 ? 10.7 : 8.8
       camera.updateProjectionMatrix()
     }
     layout()
@@ -235,18 +253,21 @@ export default function CylinderSection() {
       state.cameraY *= 0.94
       if (!state.isDragging) {
         state.targetZ *= 0.96
-        state.targetX += (-0.08 - state.targetX) * 0.012
+        state.targetX += (DEFAULT_TILT_X - state.targetX) * 0.012
+        state.targetZ += (DEFAULT_TILT_Z - state.targetZ) * 0.012
       }
 
       panels.forEach((panel, index) => {
         const mat        = panel.material as THREE.MeshBasicMaterial
-        const fp         = Math.min(Math.max((now - (panel.userData.fadeStart as number)) / 1100, 0), 1)
+        const fp         = Math.min(Math.max((now - (panel.userData.fadeStart as number)) / 900, 0), 1)
         const worldAngle = (panel.userData.baseAngle as number) + state.currentY
         const facing     = Math.cos(worldAngle)
 
-        panel.scale.setScalar(THREE.MathUtils.mapLinear(facing, -1, 1, 0.78, 1.1))
+        panel.visible = true
+        const scale = THREE.MathUtils.mapLinear(facing, -1, 1, 0.78, 1.1)
+        panel.scale.setScalar(scale)
         mat.opacity = fp * THREE.MathUtils.mapLinear(facing, -1, 1, 0.22, 1)
-
+        panel.renderOrder = Math.round((1 - facing) * 100)
         panel.position.y = Math.sin(elapsed * 0.55 + (panel.userData.phase as number)) * 0.025
         panel.rotation.z = Math.sin(elapsed * 0.45 + index) * 0.006
       })
@@ -277,6 +298,7 @@ export default function CylinderSection() {
       renderer.dispose()
       geometry.dispose()
       panels.forEach(p => (p.material as THREE.MeshBasicMaterial).dispose())
+      textures.forEach(t => t.dispose())
     }
   }, [])
 

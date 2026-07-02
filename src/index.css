@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.mask-fade-edges {
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
 :root {
   --fg: #f4f1e8;
   --muted: rgba(244, 241, 232, 0.68);
@@ -158,6 +163,10 @@ body::after {
   background: rgba(244, 241, 232, 0.065);
   backdrop-filter: blur(10px);
   color: #fff !important;
+  font: inherit;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 /* ── Hero ───────────────────────────────────────────────── */
@@ -507,5 +516,233 @@ body::after {
   .footer-piano-key.fk4 { left: 50vw; width: calc(20vw + 1px); }
   .footer-piano-key.fk5 { left: 70vw; width: calc(20vw + 1px); }
   .footer-piano-key.fk6 { left: 90vw; width: 10vw; border-right: 0; }
+}
+
+/* ── Project form widget (bottom-right) ─────────────────── */
+.project-form-root {
+  position: fixed;
+  right: clamp(16px, 2.4vw, 28px);
+  bottom: clamp(16px, 2.4vw, 28px);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.project-form-trigger {
+  pointer-events: auto;
+  border: 1px solid rgba(8, 9, 11, 0.14);
+  border-radius: 999px;
+  padding: 13px 20px;
+  background: #08090b;
+  color: #f5f5f3;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+  transition: transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+}
+
+.project-form-trigger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+}
+
+.project-form-trigger.is-open {
+  background: #f5f5f3;
+  color: #08090b;
+}
+
+.project-form-panel {
+  pointer-events: auto;
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(72vh, 620px);
+  overflow: auto;
+  border-radius: 20px;
+  border: 1px solid rgba(8, 9, 11, 0.1);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.22);
+  padding: 20px 20px 18px;
+  opacity: 0;
+  transform: translateY(16px) scale(0.96);
+  transform-origin: bottom right;
+  visibility: hidden;
+  transition:
+    opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0.28s;
+}
+
+.project-form-panel.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  visibility: visible;
+}
+
+.project-form-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.project-form-panel__eyebrow {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.project-form-panel__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  color: #08090b;
+}
+
+.project-form-panel__close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(8, 9, 11, 0.1);
+  border-radius: 999px;
+  background: #fff;
+  color: #08090b;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.project-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.project-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.project-form__field--full {
+  grid-column: 1 / -1;
+}
+
+.project-form__field--invalid input,
+.project-form__field--invalid textarea {
+  border-color: #b42318;
+  box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.08);
+}
+
+.project-form__asterisk {
+  color: #b42318;
+  font-weight: 700;
+}
+
+.project-form__field input,
+.project-form__field textarea {
+  width: 100%;
+  border: 1px solid rgba(8, 9, 11, 0.12);
+  border-radius: 12px;
+  padding: 11px 12px;
+  font: 500 14px/1.4 Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #08090b;
+  background: #fafaf9;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.project-form__field input:focus,
+.project-form__field textarea:focus {
+  outline: none;
+  border-color: rgba(8, 9, 11, 0.28);
+  box-shadow: 0 0 0 3px rgba(8, 9, 11, 0.06);
+}
+
+.project-form__field textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.project-form__error {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #b42318;
+}
+
+.project-form__error--form {
+  grid-column: 1 / -1;
+}
+
+.project-form__submit {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 999px;
+  padding: 13px 18px;
+  background: #08090b;
+  color: #f5f5f3;
+  font: 700 12px/1 Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.project-form__submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.project-form__submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.project-form-success {
+  padding: 12px 4px 8px;
+}
+
+.project-form-success__title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 650;
+  color: #08090b;
+}
+
+.project-form-success__body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+@media (max-width: 520px) {
+  .project-form {
+    grid-template-columns: 1fr;
+  }
+
+  .project-form-panel {
+    width: calc(100vw - 24px);
+    max-height: min(78vh, 640px);
+  }
 }
 

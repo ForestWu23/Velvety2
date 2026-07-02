@@ -5,6 +5,7 @@ type Props = {
   imageSrc?: string
   slides?: string[]
   imageAlt?: string
+  active?: boolean
 }
 
 /** Video frame that always fits inside the transparent window with inset + visible rounded corners. */
@@ -13,6 +14,7 @@ export default function WindowVideoCard({
   imageSrc,
   slides,
   imageAlt = 'VelvetY showreel',
+  active = true,
 }: Props) {
   return (
     <div
@@ -42,7 +44,7 @@ export default function WindowVideoCard({
         }}
       >
         {slides && slides.length > 0 ? (
-          <FastCutCarousel slides={slides} alt={imageAlt} />
+          <FastCutCarousel slides={slides} alt={imageAlt} active={active} />
         ) : (
           <img
             src={imageSrc}

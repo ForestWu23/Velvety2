@@ -4,12 +4,9 @@ import WindowVideoCompare from '@/components/WindowVideoCompare'
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
 const img  = (f: string) => `${BASE}/assets/images/${f}`
+const vid  = (f: string) => `${BASE}/assets/videos/${f}`
 
 /* Replace with real project assets when ready */
-const PLACEHOLDER_OLD =
-  'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=85'
-const PLACEHOLDER_NEW =
-  'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1200&q=85'
 
 export default function VideoSection2() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -71,16 +68,17 @@ export default function VideoSection2() {
         />
         <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
           <WindowVideoCompare
+            active={rainOn}
             left={{
               badge: 'Before',
               label: 'Project — Old',
-              imageSrc: PLACEHOLDER_OLD,
+              videoSrc: vid('eastside-before.mp4'),
               imageAlt: 'Project before redesign',
             }}
             right={{
               badge: 'After',
               label: 'Project — New',
-              imageSrc: PLACEHOLDER_NEW,
+              videoSrc: vid('eastside-after.mp4'),
               imageAlt: 'Project after redesign',
             }}
           />

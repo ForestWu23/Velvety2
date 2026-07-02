@@ -1,3 +1,5 @@
+import { useEffect, useRef, type Ref } from 'react'
+
 type Slot = {
   badge: string
   label: string
@@ -9,13 +11,24 @@ type Slot = {
 type Props = {
   left: Slot
   right: Slot
+  /** Restart videos from 0 each time section enters view */
+  active?: boolean
 }
 
-function Media({ imageSrc, videoSrc, imageAlt, label }: Pick<Slot, 'imageSrc' | 'videoSrc' | 'imageAlt' | 'label'>) {
+function Media({
+  imageSrc,
+  videoSrc,
+  imageAlt,
+  label,
+  videoRef,
+}: Pick<Slot, 'imageSrc' | 'videoSrc' | 'imageAlt' | 'label'> & {
+  videoRef?: Ref<HTMLVideoElement>
+}) {
   const style = { width: '100%', height: '100%', objectFit: 'cover' as const, display: 'block' }
   if (videoSrc) {
     return (
       <video
+        ref={videoRef}
         src={videoSrc}
         muted
         loop
@@ -29,7 +42,14 @@ function Media({ imageSrc, videoSrc, imageAlt, label }: Pick<Slot, 'imageSrc' | 
   return <img src={imageSrc} alt={imageAlt ?? label} style={style} />
 }
 
-function VideoSlot({ badge, label, imageSrc, videoSrc, imageAlt }: Slot) {
+function VideoSlot({
+  badge,
+  label,
+  imageSrc,
+  videoSrc,
+  imageAlt,
+  videoRef,
+}: Slot & { videoRef?: Ref<HTMLVideoElement> }) {
   return (
     <div
       style={{
@@ -66,7 +86,7 @@ function VideoSlot({ badge, label, imageSrc, videoSrc, imageAlt }: Slot) {
           filter: 'drop-shadow(0 24px 48px rgba(0,0,0,.65))',
         }}
       >
-        <Media imageSrc={imageSrc} videoSrc={videoSrc} imageAlt={imageAlt} label={label} />
+        <Media imageSrc={imageSrc} videoSrc={videoSrc} imageAlt={imageAlt} label={label} videoRef={videoRef} />
         <div
           style={{
             position: 'absolute',
@@ -99,7 +119,27 @@ function VideoSlot({ badge, label, imageSrc, videoSrc, imageAlt }: Slot) {
 }
 
 /** Side-by-side before/after videos inside the rain window. */
-export default function WindowVideoCompare({ left, right }: Props) {
+export default function WindowVideoCompare({ left, right, active = true }: Props) {
+  const leftVideoRef  = useRef<HTMLVideoElement>(null)
+  const rightVideoRef = useRef<HTMLVideoElement>(null)
+  const wasActiveRef  = useRef(false)
+
+  useEffect(() => {
+    if (!active) {
+      wasActiveRef.current = false
+      return
+    }
+    if (wasActiveRef.current) return
+    wasActiveRef.current = true
+
+    for (const ref of [leftVideoRef, rightVideoRef]) {
+      const v = ref.current
+      if (!v) continue
+      v.currentTime = 0
+      void v.play()
+    }
+  }, [active])
+
   return (
     <div
       style={{
@@ -112,8 +152,8 @@ export default function WindowVideoCompare({ left, right }: Props) {
         boxSizing: 'border-box',
       }}
     >
-      <VideoSlot {...left} />
-      <VideoSlot {...right} />
+      <VideoSlot {...left} videoRef={leftVideoRef} />
+      <VideoSlot {...right} videoRef={rightVideoRef} />
     </div>
   )
 }
