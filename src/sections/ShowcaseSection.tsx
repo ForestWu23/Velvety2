@@ -1,7 +1,28 @@
 import WindowVideoCard from '@/components/WindowVideoCard'
 
-const PLACEHOLDER =
-  'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1200&q=85'
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
+const gallery = (f: string) => `${BASE}/assets/gallery/${f}`
+
+const SHOWCASE_SLIDES = [
+  'alice.webp',
+  'bnpl.webp',
+  'cloth.webp',
+  'david.webp',
+  'done.webp',
+  'expand.webp',
+  'game.webp',
+  'hand.webp',
+  'lake.webp',
+  'lexend.webp',
+  'mindful.webp',
+  'music.webp',
+  'plan.webp',
+  'real.webp',
+  'sarah.webp',
+  'sheep.webp',
+  'smart.webp',
+  'website.webp',
+].map(gallery)
 
 export default function ShowcaseSection() {
   return (
@@ -39,7 +60,7 @@ export default function ShowcaseSection() {
           }}
         />
         <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
-          <WindowVideoCard badge="#VELVETY" imageSrc={PLACEHOLDER} />
+          <WindowVideoCard badge="#VELVETY" slides={SHOWCASE_SLIDES} />
         </div>
       </div>
     </section>

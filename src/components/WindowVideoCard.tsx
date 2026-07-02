@@ -1,6 +1,9 @@
+import FastCutCarousel from '@/components/FastCutCarousel'
+
 type Props = {
   badge: string
-  imageSrc: string
+  imageSrc?: string
+  slides?: string[]
   imageAlt?: string
 }
 
@@ -8,6 +11,7 @@ type Props = {
 export default function WindowVideoCard({
   badge,
   imageSrc,
+  slides,
   imageAlt = 'VelvetY showreel',
 }: Props) {
   return (
@@ -37,11 +41,15 @@ export default function WindowVideoCard({
           flexShrink: 0,
         }}
       >
-        <img
-          src={imageSrc}
-          alt={imageAlt}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-        />
+        {slides && slides.length > 0 ? (
+          <FastCutCarousel slides={slides} alt={imageAlt} />
+        ) : (
+          <img
+            src={imageSrc}
+            alt={imageAlt}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        )}
         <div
           style={{
             position: 'absolute',
@@ -64,6 +72,7 @@ export default function WindowVideoCard({
             borderRadius: 999,
             fontFamily: 'SFMono-Regular, Consolas, monospace',
             textTransform: 'uppercase',
+            zIndex: 1,
           }}
         >
           {badge}
