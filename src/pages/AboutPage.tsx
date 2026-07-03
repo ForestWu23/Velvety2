@@ -91,7 +91,9 @@ export default function AboutPage() {
       <AboutTeamStructure />
 
       <section className="about-cta">
-        <div className="about-container about-cta__grid">
+        <div className="about-container">
+          <div className="about-rule about-cta__rule" aria-hidden="true" />
+          <div className="about-cta__grid">
           <div>
             <span className="about-eyebrow">Work with us</span>
             <h2 className="about-cta__title">
@@ -110,6 +112,7 @@ export default function AboutPage() {
           </div>
           <div className="about-cta__media">
             <ContactPhotoStack />
+          </div>
           </div>
         </div>
       </section>

@@ -84,7 +84,6 @@ function VideoSlot({
       <p className="video-compare__label">{label}</p>
       <div className="video-compare__frame">
         <Media imageSrc={imageSrc} videoSrc={videoSrc} imageAlt={imageAlt} label={label} videoRef={videoRef} />
-        <div className="video-compare__shade" aria-hidden="true" />
         <div className="video-compare__badge">{badge}</div>
       </div>
     </button>

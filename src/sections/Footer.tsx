@@ -77,7 +77,15 @@ function isHomePath(pathname: string) {
 function FooterBody({ palette: c, hovered, setHovered, interactive = false, onProjectsClick }: BodyProps) {
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: '64px 40px 40px' }}>
-      <img src={img('logoSmall2.png')} alt="VelvetY" style={{ height: 48, width: 'auto', display: 'block' }} />
+      <div
+        className="footer-brand-logo"
+        style={{
+          WebkitMaskImage: `url(${img('logoSmall2.png')})`,
+          maskImage: `url(${img('logoSmall2.png')})`,
+        }}
+        role="img"
+        aria-label="VelvetY"
+      />
 
       <div style={{ marginTop: 48, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 48 }}>
         <div>

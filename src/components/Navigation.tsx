@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import BrandName from '@/components/BrandName'
 import { scrollToWorkSection } from '@/lib/scrollToWork'
 
 function isHomePath(pathname: string) {
@@ -13,6 +15,14 @@ export default function Navigation() {
   const location = useLocation()
   const navigate = useNavigate()
   const onHome = isHomePath(location.pathname)
+  const [compact, setCompact] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setCompact(window.scrollY > 48)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const onWorkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
@@ -25,22 +35,30 @@ export default function Navigation() {
 
   return (
     <header
-      className={`top-nav${onHome ? '' : ' top-nav--page'}`}
+      className={[
+        'top-nav',
+        compact && 'top-nav--compact',
+        onHome ? '' : 'top-nav--page',
+      ]
+        .filter(Boolean)
+        .join(' ')}
       aria-label="VelvetY main navigation"
     >
-      <Link className="brand" to="/" aria-label="VelvetY home">
-        <span className="brand-mark" aria-hidden="true" />
-        <span>VelvetY</span>
-      </Link>
-      <nav className="nav-links" aria-label="Primary navigation">
-        <Link to="/services">Services</Link>
-        <a href="#work" onClick={onWorkClick}>Work</a>
-        <Link to="/about">About</Link>
-        <Link to="/contact" className="nav-cta nav-cta--shine">
-          <span className="nav-cta__shine" aria-hidden="true" />
-          <span className="nav-cta__label">Start a project</span>
+      <div className="top-nav__shell">
+        <Link className="brand" to="/" aria-label="VelvetY home">
+          <span className="brand-mark" aria-hidden="true" />
+          <span><BrandName /></span>
         </Link>
-      </nav>
+        <nav className="nav-links" aria-label="Primary navigation">
+          <Link to="/services">Services</Link>
+          <a href="#work" onClick={onWorkClick}>Work</a>
+          <Link to="/about">About</Link>
+          <Link to="/contact" className="nav-cta nav-cta--shine">
+            <span className="nav-cta__shine" aria-hidden="true" />
+            <span className="nav-cta__label">Start a project</span>
+          </Link>
+        </nav>
+      </div>
     </header>
   )
 }

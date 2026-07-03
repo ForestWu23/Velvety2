@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import BrandName from '@/components/BrandName'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 function isActivePath(pathname: string, segment: string) {
@@ -37,7 +38,7 @@ export default function SubpageNavigation() {
       <div className="about-top-nav__shell">
         <Link className="about-top-nav__brand" to="/" aria-label="VelvetY home">
           <span className="brand-mark" aria-hidden="true" />
-          <span>VelvetY</span>
+          <span><BrandName /></span>
         </Link>
 
         <div className="about-top-nav__right">
