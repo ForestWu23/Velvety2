@@ -1,14 +1,19 @@
 import { useCallback, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { scrollToWorkSection } from '@/lib/scrollToWork'
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
 const img  = (f: string) => `${BASE}/assets/images/${f}`
 
-const NAV = [
-  { label: 'Contact Us', to: '/contact' },
-  { label: 'About',      to: '/about'   },
-  { label: 'Services',   to: '/services'},
-  { label: 'Projects',   to: '/projects'},
+type NavItem =
+  | { label: string; kind: 'link'; to: string }
+  | { label: string; kind: 'work' }
+
+const NAV: NavItem[] = [
+  { label: 'Contact Us', kind: 'link', to: '/contact' },
+  { label: 'About', kind: 'link', to: '/about' },
+  { label: 'Services', kind: 'link', to: '/services' },
+  { label: 'Projects', kind: 'work' },
 ]
 
 const KEY_COUNT = 6
@@ -58,9 +63,18 @@ type BodyProps = {
   hovered: string | null
   setHovered?: (v: string | null) => void
   interactive?: boolean
+  onProjectsClick: (e: React.MouseEvent<HTMLAnchorElement>) => void
 }
 
-function FooterBody({ palette: c, hovered, setHovered, interactive = false }: BodyProps) {
+function isHomePath(pathname: string) {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+  const normalized = pathname.replace(/\/$/, '') || '/'
+  if (normalized === '/' || normalized === '') return true
+  if (base && normalized === base) return true
+  return false
+}
+
+function FooterBody({ palette: c, hovered, setHovered, interactive = false, onProjectsClick }: BodyProps) {
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: '64px 40px 40px' }}>
       <img src={img('logoSmall2.png')} alt="VelvetY" style={{ height: 48, width: 'auto', display: 'block' }} />
@@ -89,15 +103,28 @@ function FooterBody({ palette: c, hovered, setHovered, interactive = false }: Bo
           <ul style={{ marginTop: 20, listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14, color: c.body }}>
             {NAV.map(n => (
               <li key={n.label}>
-                <Link
-                  to={n.to}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: c.body, textDecoration: 'none', pointerEvents: interactive ? 'auto' : 'none' }}
-                  onMouseEnter={() => setHovered?.(n.label)}
-                  onMouseLeave={() => setHovered?.(null)}
-                >
-                  {n.label}
-                  <span style={{ display: 'block', height: 1, background: c.underline, width: hovered === n.label ? 20 : 0, transition: 'width 0.3s' }} />
-                </Link>
+                {n.kind === 'work' ? (
+                  <a
+                    href="#work"
+                    onClick={onProjectsClick}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: c.body, textDecoration: 'none', pointerEvents: interactive ? 'auto' : 'none' }}
+                    onMouseEnter={() => setHovered?.(n.label)}
+                    onMouseLeave={() => setHovered?.(null)}
+                  >
+                    {n.label}
+                    <span style={{ display: 'block', height: 1, background: c.underline, width: hovered === n.label ? 20 : 0, transition: 'width 0.3s' }} />
+                  </a>
+                ) : (
+                  <Link
+                    to={n.to}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: c.body, textDecoration: 'none', pointerEvents: interactive ? 'auto' : 'none' }}
+                    onMouseEnter={() => setHovered?.(n.label)}
+                    onMouseLeave={() => setHovered?.(null)}
+                  >
+                    {n.label}
+                    <span style={{ display: 'block', height: 1, background: c.underline, width: hovered === n.label ? 20 : 0, transition: 'width 0.3s' }} />
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
@@ -133,12 +160,23 @@ function keyIndexAtX(clientX: number, keyEls: (HTMLDivElement | null)[]) {
 }
 
 export default function Footer() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [hovered, setHovered]     = useState<string | null>(null)
   const [activeKey, setActiveKey] = useState<number | null>(null)
   const [darkClip, setDarkClip]   = useState('inset(0 100% 0 0)')
 
   const footerRef = useRef<HTMLElement>(null)
   const keyRefs   = useRef<(HTMLDivElement | null)[]>([])
+
+  const onProjectsClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    if (isHomePath(location.pathname)) {
+      scrollToWorkSection()
+      return
+    }
+    navigate('/#work')
+  }, [location.pathname, navigate])
 
   const updateDarkClip = useCallback((keyIdx: number | null) => {
     if (keyIdx === null) {
@@ -193,12 +231,10 @@ export default function Footer() {
         ))}
       </div>
 
-      {/* Light text — default on dark keys */}
       <div className="footer-content-layer footer-content-layer--interactive" style={{ zIndex: 2 }}>
-        <FooterBody palette={LIGHT} hovered={hovered} setHovered={setHovered} interactive />
+        <FooterBody palette={LIGHT} hovered={hovered} setHovered={setHovered} interactive onProjectsClick={onProjectsClick} />
       </div>
 
-      {/* Dark text — clipped to lifted key column over white base */}
       <div
         className="footer-content-layer"
         style={{
@@ -208,7 +244,7 @@ export default function Footer() {
         }}
         aria-hidden
       >
-        <FooterBody palette={DARK} hovered={hovered} />
+        <FooterBody palette={DARK} hovered={hovered} onProjectsClick={onProjectsClick} />
       </div>
     </footer>
   )

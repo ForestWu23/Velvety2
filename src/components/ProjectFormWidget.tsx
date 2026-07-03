@@ -1,3 +1,4 @@
+import { MessageSquare } from 'lucide-react'
 import {
   createContext,
   useCallback,
@@ -101,12 +102,16 @@ function ProjectFormWidget() {
       <button
         id="project-form-trigger"
         type="button"
-        className={`project-form-trigger${open ? ' is-open' : ''}`}
+        className={`inquiry-fab${open ? ' is-open' : ''}`}
         onClick={toggleForm}
         aria-expanded={open}
         aria-controls="project-form-title"
       >
-        {open ? 'Close' : 'Contact'}
+        <span className="inquiry-fab__ring" aria-hidden="true" />
+        <span className="inquiry-fab__icon" aria-hidden="true">
+          <MessageSquare size={17} strokeWidth={2.2} />
+        </span>
+        <span className="inquiry-fab__label">{open ? 'Close' : 'Free Inquiry'}</span>
       </button>
     </div>
   )

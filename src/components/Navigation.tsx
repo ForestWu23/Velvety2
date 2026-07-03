@@ -1,43 +1,45 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useProjectForm } from '@/components/ProjectFormWidget'
+import { scrollToWorkSection } from '@/lib/scrollToWork'
 
-function scrollToWork() {
-  const el = document.getElementById('work')
-  if (!el) return false
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  window.history.replaceState(null, '', '#work')
-  return true
+function isHomePath(pathname: string) {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+  const normalized = pathname.replace(/\/$/, '') || '/'
+  if (normalized === '/' || normalized === '') return true
+  if (base && normalized === base) return true
+  return false
 }
 
 export default function Navigation() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { openForm } = useProjectForm()
+  const onHome = isHomePath(location.pathname)
 
   const onWorkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
-    const onHome = location.pathname === '/' || location.pathname === ''
     if (onHome) {
-      scrollToWork()
+      scrollToWorkSection()
       return
     }
-    navigate('/')
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => scrollToWork())
-    })
+    navigate('/#work')
   }
 
   return (
-    <header className="top-nav" aria-label="VelvetY main navigation">
+    <header
+      className={`top-nav${onHome ? '' : ' top-nav--page'}`}
+      aria-label="VelvetY main navigation"
+    >
       <Link className="brand" to="/" aria-label="VelvetY home">
         <span className="brand-mark" aria-hidden="true" />
         <span>VelvetY</span>
       </Link>
       <nav className="nav-links" aria-label="Primary navigation">
-        <a href="#services">Services</a>
+        <Link to="/services">Services</Link>
         <a href="#work" onClick={onWorkClick}>Work</a>
         <Link to="/about">About</Link>
-        <button type="button" className="nav-cta" onClick={openForm}>Start a project</button>
+        <Link to="/contact" className="nav-cta nav-cta--shine">
+          <span className="nav-cta__shine" aria-hidden="true" />
+          <span className="nav-cta__label">Start a project</span>
+        </Link>
       </nav>
     </header>
   )

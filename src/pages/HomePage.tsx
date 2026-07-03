@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import ColorBends from '@/components/ColorBends'
 import WaveDivider from '@/components/WaveDivider'
 import Hero from '@/sections/Hero'
@@ -8,14 +9,16 @@ import CylinderSection from '@/sections/CylinderSection'
 import VideoSection2 from '@/sections/VideoSection2'
 import ClientsStrip from '@/sections/ClientsStrip'
 import Footer from '@/sections/Footer'
+import { scrollToWorkSection } from '@/lib/scrollToWork'
 
 export default function HomePage() {
+  const location = useLocation()
+
   useEffect(() => {
-    if (window.location.hash !== '#work') return
-    requestAnimationFrame(() => {
-      document.getElementById('work')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
-  }, [])
+    const hash = location.hash || window.location.hash
+    if (hash !== '#work') return
+    scrollToWorkSection()
+  }, [location.pathname, location.hash])
 
   return (
     <div style={{ background: '#000' }}>

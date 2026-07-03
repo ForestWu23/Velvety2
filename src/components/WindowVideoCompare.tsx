@@ -1,4 +1,4 @@
-import { useEffect, useRef, type Ref } from 'react'
+import { useEffect, useRef, useState, type Ref } from 'react'
 
 type Slot = {
   badge: string
@@ -7,6 +7,8 @@ type Slot = {
   videoSrc?: string
   imageAlt?: string
 }
+
+type Side = 'left' | 'right'
 
 type Props = {
   left: Slot
@@ -43,86 +45,61 @@ function Media({
 }
 
 function VideoSlot({
+  side,
   badge,
   label,
   imageSrc,
   videoSrc,
   imageAlt,
   videoRef,
-}: Slot & { videoRef?: Ref<HTMLVideoElement> }) {
+  isFocused,
+  isShrunk,
+  onEnter,
+  onClick,
+}: Slot & {
+  side: Side
+  videoRef?: Ref<HTMLVideoElement>
+  isFocused: boolean
+  isShrunk: boolean
+  onEnter: () => void
+  onClick: () => void
+}) {
   return (
-    <div
-      style={{
-        flex: 1,
-        minWidth: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-        pointerEvents: 'auto',
-      }}
+    <button
+      type="button"
+      className={[
+        'video-compare__slot',
+        `video-compare__slot--${side}`,
+        isFocused && 'video-compare__slot--focused',
+        isShrunk && 'video-compare__slot--shrunk',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      onMouseEnter={onEnter}
+      onFocus={onEnter}
+      onClick={onClick}
+      aria-pressed={isFocused}
+      aria-label={`${label} — ${isFocused ? 'expanded' : 'collapsed'}`}
     >
-      <p
-        style={{
-          margin: 0,
-          fontSize: 10,
-          fontWeight: 600,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.55)',
-          fontFamily: 'SFMono-Regular, Consolas, monospace',
-        }}
-      >
-        {label}
-      </p>
-      <div
-        style={{
-          position: 'relative',
-          width: '100%',
-          aspectRatio: '16 / 10',
-          maxHeight: '100%',
-          borderRadius: 16,
-          overflow: 'hidden',
-          background: '#111',
-          filter: 'drop-shadow(0 24px 48px rgba(0,0,0,.65))',
-        }}
-      >
+      <p className="video-compare__label">{label}</p>
+      <div className="video-compare__frame">
         <Media imageSrc={imageSrc} videoSrc={videoSrc} imageAlt={imageAlt} label={label} videoRef={videoRef} />
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(to bottom, rgba(0,0,0,.06) 0%, rgba(0,0,0,.38) 100%)',
-            pointerEvents: 'none',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            background: 'rgba(0,0,0,.58)',
-            backdropFilter: 'blur(8px)',
-            color: '#fff',
-            fontSize: 10,
-            letterSpacing: '0.08em',
-            padding: '4px 10px',
-            borderRadius: 999,
-            fontFamily: 'SFMono-Regular, Consolas, monospace',
-            textTransform: 'uppercase',
-          }}
-        >
-          {badge}
-        </div>
+        <div className="video-compare__shade" aria-hidden="true" />
+        <div className="video-compare__badge">{badge}</div>
       </div>
-    </div>
+    </button>
   )
 }
 
 /** Side-by-side before/after videos inside the rain window. */
 export default function WindowVideoCompare({ left, right, active = true }: Props) {
-  const leftVideoRef  = useRef<HTMLVideoElement>(null)
+  const leftVideoRef = useRef<HTMLVideoElement>(null)
   const rightVideoRef = useRef<HTMLVideoElement>(null)
-  const wasActiveRef  = useRef(false)
+  const wasActiveRef = useRef(false)
+  const [hovered, setHovered] = useState<Side | null>(null)
+  const [pinned, setPinned] = useState<Side | null>(null)
+
+  const focused = pinned ?? hovered
 
   useEffect(() => {
     if (!active) {
@@ -140,20 +117,44 @@ export default function WindowVideoCompare({ left, right, active = true }: Props
     }
   }, [active])
 
+  const handleLeave = () => {
+    if (!pinned) setHovered(null)
+  }
+
+  const handleClick = (side: Side) => {
+    setPinned(current => (current === side ? null : side))
+    setHovered(side)
+  }
+
   return (
     <div
-      style={{
-        position: 'absolute',
-        inset: 'clamp(16px, 2.5vw, 32px)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 'clamp(12px, 2vw, 28px)',
-        pointerEvents: 'none',
-        boxSizing: 'border-box',
-      }}
+      className={[
+        'video-compare',
+        focused === 'left' && 'video-compare--left-focus',
+        focused === 'right' && 'video-compare--right-focus',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      onMouseLeave={handleLeave}
     >
-      <VideoSlot {...left} videoRef={leftVideoRef} />
-      <VideoSlot {...right} videoRef={rightVideoRef} />
+      <VideoSlot
+        {...left}
+        side="left"
+        videoRef={leftVideoRef}
+        isFocused={focused === 'left'}
+        isShrunk={focused === 'right'}
+        onEnter={() => setHovered('left')}
+        onClick={() => handleClick('left')}
+      />
+      <VideoSlot
+        {...right}
+        side="right"
+        videoRef={rightVideoRef}
+        isFocused={focused === 'right'}
+        isShrunk={focused === 'left'}
+        onEnter={() => setHovered('right')}
+        onClick={() => handleClick('right')}
+      />
     </div>
   )
 }

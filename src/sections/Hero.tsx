@@ -459,7 +459,17 @@ export default function Hero() {
       })
     }
 
+    function alignIntroStateWithScroll() {
+      if (scrollY > 1) {
+        introState.unlocked = true
+        if (introState.virtualP < ORB_UNLOCK_POINT) {
+          introState.virtualP = ORB_UNLOCK_POINT
+        }
+      }
+    }
+
     function syncScrollDriven() {
+      alignIntroStateWithScroll()
       const max = introMaxScroll()
       const pageP = clamp(scrollY / max, 0, 1)
       if (scrollY <= 1 && !introState.unlocked) {
@@ -467,15 +477,21 @@ export default function Hero() {
         updateOrbPassThrough()
         return
       }
-      if (scrollY <= 1 && introState.unlocked && introState.virtualP < ORB_UNLOCK_POINT) {
-        introState.unlocked = false
-        setIntroProgress(introState.virtualP)
-        updateOrbPassThrough()
-        return
-      }
       const p = ORB_UNLOCK_POINT + pageP * (1 - ORB_UNLOCK_POINT)
       setIntroProgress(p)
       updateOrbPassThrough()
+    }
+
+    function shouldDrivePageScroll() {
+      if (scrollY > 1) return true
+      return introState.unlocked || canvas.classList.contains('pass-through')
+    }
+
+    function drivePageScroll(deltaY: number, event?: Event) {
+      if (!shouldDrivePageScroll()) return false
+      if (event && (event as WheelEvent).cancelable) event.preventDefault()
+      window.scrollBy(0, deltaY)
+      return true
     }
 
     function consumeDelta(deltaY: number, event?: Event) {
@@ -510,11 +526,7 @@ export default function Hero() {
 
     function onWheel(e: WheelEvent) {
       if (consumeDelta(e.deltaY, e)) return
-      // Past intro: orb is pass-through so native wheel won't move the page — drive manually
-      if (canvas.classList.contains('pass-through')) {
-        if (e.cancelable) e.preventDefault()
-        window.scrollBy(0, e.deltaY)
-      }
+      drivePageScroll(e.deltaY, e)
       requestAnimationFrame(syncScrollDriven)
     }
     function onTouchStart(e: TouchEvent) {
@@ -525,16 +537,16 @@ export default function Hero() {
       const deltaY = introState.touchY - t.clientY
       introState.touchY = t.clientY
       if (consumeDelta(deltaY, e)) return
-      if (canvas.classList.contains('pass-through')) {
-        if (e.cancelable) e.preventDefault()
-        window.scrollBy(0, deltaY)
-      }
+      drivePageScroll(deltaY, e)
     }
     function onKeyDown(e: KeyboardEvent) {
       const keys: Record<string, number> = { ArrowDown: 80, PageDown: 360, ' ': 360, ArrowUp: -80, PageUp: -360, Home: -9999 }
       if (!(e.key in keys)) return
       if (e.key === 'Home') introState.virtualP = 0
-      consumeDelta(keys[e.key], e)
+      const delta = keys[e.key]
+      if (consumeDelta(delta, e)) return
+      drivePageScroll(delta, e)
+      requestAnimationFrame(syncScrollDriven)
     }
 
     function onResize() { resize() }
@@ -589,12 +601,12 @@ export default function Hero() {
         aria-label="Animated VelvetY orbital particle field"
       />
 
+      <Navigation />
+
       {/* 200vh scroll container — drives the intro animation */}
       <section className="intro-scroll" aria-label="VelvetY animated intro">
         <div className="site-shell">
           <div className="white-guide" aria-hidden="true" />
-
-          <Navigation />
 
           <main className="hero" aria-label="VelvetY homepage hero" />
 
