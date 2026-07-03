@@ -173,23 +173,30 @@ body::after {
   font-size: clamp(20px, 2vw, 27px);
 }
 
-.brand-mark {
-  width: 33px;
-  height: 33px;
-  border-radius: 999px;
-  border: 1px solid rgba(244, 241, 232, 0.62);
-  box-shadow: 0 0 26px rgba(244, 241, 232, 0.18), inset 0 0 16px rgba(244, 241, 232, 0.12);
-  position: relative;
+.brand-eye {
+  display: block;
+  height: 32px;
+  width: auto;
   flex-shrink: 0;
+  color: inherit;
+  --eye-pupil: #f4f1e8;
+  --eye-dot: #08090b;
 }
 
-.brand-mark::after {
-  content: '';
-  position: absolute;
-  inset: 9px;
-  border-radius: inherit;
-  background: #f4f1e8;
-  box-shadow: 0 0 18px rgba(244, 241, 232, 0.64);
+.brand-eye__line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 28;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.brand-eye__pupil {
+  fill: var(--eye-pupil);
+}
+
+.brand-eye__dot {
+  fill: var(--eye-dot);
 }
 
 .nav-links {
@@ -1031,14 +1038,10 @@ body::after {
   flex-shrink: 0;
 }
 
-.about-top-nav__brand .brand-mark {
-  border-color: rgba(8, 9, 11, 0.22);
-  box-shadow: 0 0 18px rgba(8, 9, 11, 0.06), inset 0 0 12px rgba(8, 9, 11, 0.04);
-}
-
-.about-top-nav__brand .brand-mark::after {
-  background: #08090b;
-  box-shadow: 0 0 14px rgba(8, 9, 11, 0.18);
+.about-top-nav__brand .brand-eye {
+  color: #08090b;
+  --eye-pupil: #08090b;
+  --eye-dot: #fff;
 }
 
 .about-top-nav__right {

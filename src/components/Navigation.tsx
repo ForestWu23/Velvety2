@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import BrandEyeLogo from '@/components/BrandEyeLogo'
 import BrandName from '@/components/BrandName'
 import { scrollToWorkSection } from '@/lib/scrollToWork'
 
@@ -46,7 +47,7 @@ export default function Navigation() {
     >
       <div className="top-nav__shell">
         <Link className="brand" to="/" aria-label="VelvetY home">
-          <span className="brand-mark" aria-hidden="true" />
+          <BrandEyeLogo />
           <span><BrandName /></span>
         </Link>
         <nav className="nav-links" aria-label="Primary navigation">
