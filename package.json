@@ -6,9 +6,11 @@
   "homepage": "https://forestwu23.github.io/Velvety2/",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "deploy": "vite build && gh-pages -d dist"
+    "build": "vite build --base /Velvety2/",
+    "build:local": "vite build --base /",
+    "preview": "vite preview --port 4173",
+    "preview:local": "npm run build:local && vite preview --port 4173",
+    "deploy": "npm run build && gh-pages -d dist"
   },
   "dependencies": {
     "@formspree/react": "^3.0.0",

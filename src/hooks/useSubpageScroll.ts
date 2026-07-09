@@ -1,4 +1,5 @@
 import { useLayoutEffect, type RefObject } from 'react'
+import { isCoarsePointer } from '@/lib/isCoarsePointer'
 
 /** Fixed subpage scroll root — keeps About/Services off the homepage Hero wheel logic. */
 export function useSubpageScroll(pageRef: RefObject<HTMLElement | null>) {
@@ -15,6 +16,13 @@ export function useSubpageScroll(pageRef: RefObject<HTMLElement | null>) {
     document.documentElement.style.overflow = 'hidden'
     window.scrollTo(0, 0)
     el.scrollTop = 0
+
+    if (isCoarsePointer()) {
+      return () => {
+        document.body.style.overflow = prevBody
+        document.documentElement.style.overflow = prevHtml
+      }
+    }
 
     const scrollBy = (deltaY: number) => {
       const max = el.scrollHeight - el.clientHeight

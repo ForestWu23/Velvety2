@@ -18,6 +18,7 @@ export default function Hero() {
     const noise = (n: number) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453123; return x - Math.floor(x) }
 
     const mobile = matchMedia('(max-width: 760px)').matches
+    const coarsePointer = matchMedia('(pointer: coarse)').matches
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
 
     /* ── State ──────────────────────────────────────────── */
@@ -537,7 +538,9 @@ export default function Hero() {
       const deltaY = introState.touchY - t.clientY
       introState.touchY = t.clientY
       if (consumeDelta(deltaY, e)) return
+      if (coarsePointer) return
       drivePageScroll(deltaY, e)
+      requestAnimationFrame(syncScrollDriven)
     }
     function onKeyDown(e: KeyboardEvent) {
       const keys: Record<string, number> = { ArrowDown: 80, PageDown: 360, ' ': 360, ArrowUp: -80, PageUp: -360, Home: -9999 }

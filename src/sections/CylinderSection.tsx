@@ -78,7 +78,7 @@ export default function CylinderSection() {
     const DEFAULT_TILT_X = -0.08
     const DEFAULT_TILT_Z =  0.13
     /* auto-spin: counter-clockwise (panels drift right → left on screen) */
-    const AUTO_SPIN = 0.0015
+    const AUTO_SPIN = 0.00045
 
     function createCurvedPanelGeometry(w: number, h: number, r: number, arc: number) {
       const geo = new THREE.PlaneGeometry(w, h, 36, 6)
@@ -168,12 +168,12 @@ export default function CylinderSection() {
       state.lastPointerX = e.clientX
       state.lastPointerY = e.clientY
 
-      state.targetY += dx * 0.0068
+      state.targetY += dx * 0.004
       state.targetX += dy * 0.00125
       state.targetZ += dx * -0.00042
       state.cameraX += dx * -0.00022
       state.cameraY += dy * 0.00024
-      state.dragVelocity = dx * 0.00082
+      state.dragVelocity = dx * 0.0005
 
       state.targetX = clamp(state.targetX, -0.28,  0.22)
       state.targetZ = clamp(state.targetZ, -0.095, 0.095)
@@ -182,7 +182,7 @@ export default function CylinderSection() {
     }
     function onPointerUp() {
       state.isDragging   = false
-      state.autoVelocity = clamp(state.dragVelocity, -0.035, 0.035)
+      state.autoVelocity = clamp(state.dragVelocity, -0.02, 0.02)
       canvas.style.cursor = 'grab'
     }
 
@@ -197,13 +197,13 @@ export default function CylinderSection() {
       state.lastScrollY = window.scrollY
       if (Math.abs(delta) > 0) {
         state.scrollDirection = delta > 0 ? 1 : -1
-        state.scrollVelocity += clamp(delta * 0.00009, -0.055, 0.055)
-        state.targetY        += delta * 0.0022
+        state.scrollVelocity += clamp(delta * 0.000018, -0.014, 0.014)
+        state.targetY        += delta * 0.00045
       }
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('wheel', (e: WheelEvent) => {
-      state.scrollVelocity += clamp(e.deltaY * 0.000035, -0.026, 0.026)
+      state.scrollVelocity += clamp(e.deltaY * 0.000007, -0.007, 0.007)
     }, { passive: true })
 
     /* ── Resize ───────────────────────────────────────────── */
@@ -227,15 +227,15 @@ export default function CylinderSection() {
       if (!alive) return
       const elapsed = clock.getElapsedTime()
       const now     = performance.now()
-      const base    = 0.0014 * state.scrollDirection
+      const base    = 0.00025 * state.scrollDirection
       const vel     = state.autoVelocity + state.scrollVelocity + base
 
       if (!state.isDragging) {
         state.targetY       += vel
         state.autoVelocity  *= 0.982
         state.scrollVelocity *= 0.91
-        if (Math.abs(state.autoVelocity) < 0.0012)
-          state.autoVelocity = 0.0012 * state.scrollDirection
+        if (Math.abs(state.autoVelocity) < 0.00035)
+          state.autoVelocity = 0.00035 * state.scrollDirection
       }
 
       state.currentY += (state.targetY - state.currentY) * 0.09

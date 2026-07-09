@@ -1,12 +1,8 @@
 import { useEffect, useState } from 'react'
 import BrandEyeLogo from '@/components/BrandEyeLogo'
 import BrandName from '@/components/BrandName'
+import SiteNavMenu, { isActivePath } from '@/components/SiteNavMenu'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-
-function isActivePath(pathname: string, segment: string) {
-  const normalized = pathname.replace(/\/$/, '') || '/'
-  return normalized === `/${segment}` || normalized.endsWith(`/${segment}`)
-}
 
 export default function SubpageNavigation() {
   const { pathname } = useLocation()
@@ -43,28 +39,12 @@ export default function SubpageNavigation() {
         </Link>
 
         <div className="about-top-nav__right">
-          <nav className="about-top-nav__links" aria-label="Primary navigation">
-            <Link
-              to="/services"
-              className={onServices ? 'is-active' : undefined}
-              aria-current={onServices ? 'page' : undefined}
-            >
-              Services
-            </Link>
-            <a href="#work" onClick={onWorkClick}>Work</a>
-            <Link
-              to="/about"
-              className={onAbout ? 'is-active' : undefined}
-              aria-current={onAbout ? 'page' : undefined}
-            >
-              About
-            </Link>
-          </nav>
-
-          <Link to="/contact" className="nav-cta nav-cta--shine about-top-nav__cta">
-            <span className="nav-cta__shine" aria-hidden="true" />
-            <span className="nav-cta__label">Start a project</span>
-          </Link>
+          <SiteNavMenu
+            variant="subpage"
+            onServices={onServices}
+            onAbout={onAbout}
+            onWorkClick={onWorkClick}
+          />
         </div>
       </div>
     </header>

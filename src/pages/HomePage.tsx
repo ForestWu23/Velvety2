@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import ColorBends from '@/components/ColorBends'
+import RainEffect from '@/components/RainEffect'
 import WaveDivider from '@/components/WaveDivider'
 import Hero from '@/sections/Hero'
 import SelectedWorks from '@/sections/SelectedWorks'
@@ -13,6 +14,9 @@ import { scrollToWorkSection } from '@/lib/scrollToWork'
 
 export default function HomePage() {
   const location = useLocation()
+  const [video2RainOn, setVideo2RainOn] = useState(false)
+
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 
   useEffect(() => {
     const hash = location.hash || window.location.hash
@@ -52,6 +56,24 @@ export default function HomePage() {
         />
       </div>
 
+      {/*
+       * Rain + city — fixed behind Video Section 2 window (same idea as Color Bends).
+       */}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 2,
+          pointerEvents: 'none',
+        }}
+      >
+        <RainEffect
+          active={video2RainOn}
+          fixed
+          citySrc={`${base}/assets/images/city-footer.jpg`}
+        />
+      </div>
+
       <Hero />
       <SelectedWorks />
       {/* String-wave boundary: white SelectedWorks → black ShowcaseSection */}
@@ -62,7 +84,7 @@ export default function HomePage() {
       <CylinderSection />
       {/* String-wave boundary: white CylinderSection → black VideoSection2 */}
       <WaveDivider topColor="#f5f5f3" bottomColor="#000000" />
-      <VideoSection2 />
+      <VideoSection2 onRainActiveChange={setVideo2RainOn} />
       {/* String-wave boundary: black VideoSection2 → warm-white ClientsStrip */}
       <WaveDivider topColor="#000000" bottomColor="#f5f5f3" />
       <ClientsStrip />

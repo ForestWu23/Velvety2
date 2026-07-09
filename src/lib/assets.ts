@@ -3,6 +3,7 @@ const url = (file: string) => `${base}/assets/images/${file}`
 const seattle = (file: string) => `${base}/assets/images/seattle/${file}`
 const contact = (file: string) => `${base}/assets/images/contact/${file}`
 const servicesCta = (file: string) => `${base}/assets/images/services-cta/${file}`
+const work = (file: string) => `${base}/assets/works/${file}`
 
 export const assets = {
   whoWeAreImage: url('whoWeAreImage.jpg'),
@@ -37,5 +38,13 @@ export const assets = {
     { src: servicesCta('services-cta-3.jpg'), alt: 'Creative professional in a studio environment' },
     { src: servicesCta('services-cta-4.jpg'), alt: 'Modern workspace with design materials' },
     { src: servicesCta('services-cta-5.jpg'), alt: 'Hands working on a visual design layout' },
+  ],
+  selectedWorks: [
+    { src: work('nutribites.png'), alt: 'NutriBites brand and web project' },
+    { src: work('buyerfolio.jpg'), alt: 'BuyerFolio website redesign' },
+    { src: work('huagen-culture-center.png'), alt: 'Huagen Culture Center website' },
+    { src: work('green-apple-art.jpg'), alt: 'Green Apple Art creative project' },
+    { src: work('coming-soon-1.png'), alt: 'Selected work coming soon' },
+    { src: work('coming-soon-2.png'), alt: 'Selected work coming soon' },
   ],
 } as const

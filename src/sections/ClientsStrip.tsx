@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import './ClientsStrip.css'
 
 const BASE   = import.meta.env.BASE_URL.replace(/\/$/, '')
 const imgSrc = (f: string) => `${BASE}/assets/images/${f}`
@@ -97,6 +98,30 @@ function BrandCarousel() {
 const FF   = 'Inter, ui-sans-serif, system-ui, sans-serif'
 const LINE = '1px solid rgba(0,0,0,0.09)'
 
+function StripCell({
+  children,
+  style,
+  variant,
+}: {
+  children: ReactNode
+  style?: CSSProperties
+  variant?: 'studio' | 'about' | 'service'
+}) {
+  const [hovered, setHovered] = useState(false)
+  const variantClass = variant ? ` clients-strip__cell--${variant}` : ''
+
+  return (
+    <div
+      className={`clients-strip__cell${variantClass}${hovered ? ' is-hovered' : ''}`}
+      style={style}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {children}
+    </div>
+  )
+}
+
 /* ── Services + section ───────────────────────────────────────────── */
 const services = [
   { num: '01', title: 'Design', desc: "Most design looks like most other design. Safe and predictable. We ask uncomfortable questions that dig into the real problems — and build identities that earn attention.", items: ['Web Design', 'UX Design', 'Branding', 'Graphic Design'] },
@@ -111,38 +136,47 @@ export default function ClientsStrip() {
   return (
     <section style={{ position: 'relative', zIndex: 3, minHeight: '100vh', background: '#f5f5f3', display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: FF, color: '#08090b' }}>
       <div style={{ flex: '1 0 0', padding: `${PAD_T} ${PAD_X} 0`, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: LINE, borderLeft: LINE }}>
-          <div style={{ borderRight: LINE, borderBottom: LINE, padding: 'clamp(24px,3vw,40px)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 18 }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#08090b' }} />
-              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.26em', textTransform: 'uppercase', color: '#9ca3af', margin: 0 }}>Studio</p>
+        <div className="clients-strip__top" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: LINE, borderLeft: LINE }}>
+          <StripCell variant="studio" style={{ borderRight: LINE, borderBottom: LINE, padding: 'clamp(24px,3vw,40px)' }}>
+            <div className="clients-strip__label-row">
+              <span className="clients-strip__dot" />
+              <p className="clients-strip__eyebrow clients-strip__eyebrow--studio">Studio</p>
             </div>
-            <h2 style={{ margin: 0, fontSize: 'clamp(24px,3vw,44px)', fontWeight: 500, lineHeight: 1.12, letterSpacing: '-0.04em' }}>
+            <h2 className="clients-strip__title">
               We are a Seattle studio with a shared obsession for brands that matter.
             </h2>
-          </div>
-          <div style={{ borderRight: LINE, borderBottom: LINE, padding: 'clamp(24px,3vw,40px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <p style={{ margin: '0 0 32px', fontSize: 'clamp(13px,1.05vw,15px)', lineHeight: 1.74, color: '#4b5563', maxWidth: 440 }}>
+          </StripCell>
+          <StripCell variant="about" style={{ borderRight: LINE, borderBottom: LINE, padding: 'clamp(24px,3vw,40px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <p className="clients-strip__muted clients-strip__about-copy">
               The team is a mix — creative, technical, practical, opinionated. Some of us make noise, some make spreadsheets.
             </p>
-            <Link to="/about" style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#08090b', textDecoration: 'none' }}>About ↗</Link>
-          </div>
+            <Link to="/about" className="clients-strip__link clients-strip__about-link">About ↗</Link>
+          </StripCell>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderLeft: LINE, flex: '1 0 0' }}>
+        <div className="clients-strip__services-block" style={{ borderLeft: LINE, flex: '1 0 0' }}>
+          <div className="clients-strip__services-intro">
+            <div className="clients-strip__label-row">
+              <span className="clients-strip__dot" />
+              <p className="clients-strip__eyebrow clients-strip__section-label">Our Services</p>
+            </div>
+            <Link to="/services" className="clients-strip__link clients-strip__services-link">All services ↗</Link>
+          </div>
+          <div className="clients-strip__services">
           {services.map(s => (
-            <div key={s.num} style={{ borderRight: LINE, borderBottom: LINE, padding: 'clamp(22px,2.5vw,36px)' }}>
-              <span style={{ display: 'block', fontSize: 10, fontWeight: 600, letterSpacing: '0.22em', color: '#c8c8c8', marginBottom: 10 }}>{s.num}</span>
-              <h3 style={{ margin: '0 0 12px', fontSize: 'clamp(15px,1.4vw,19px)', fontWeight: 500 }}>{s.title}</h3>
-              <p style={{ margin: '0 0 18px', fontSize: 'clamp(12px,0.88vw,13px)', lineHeight: 1.70, color: '#6b7280' }}>{s.desc}</p>
-              <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 7 }}>
+            <StripCell key={s.num} variant="service" style={{ borderRight: LINE, borderBottom: LINE, padding: 'clamp(22px,2.5vw,36px)' }}>
+              <span className="clients-strip__eyebrow clients-strip__service-num">{s.num}</span>
+              <h3 className="clients-strip__heading">{s.title}</h3>
+              <p className="clients-strip__muted clients-strip__service-desc">{s.desc}</p>
+              <ul className="clients-strip__service-list">
                 {s.items.map(item => (
-                  <li key={item} style={{ fontSize: 'clamp(12px,0.92vw,14px)', color: '#374151', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#d1d5db' }} />{item}
+                  <li key={item} className="clients-strip__list-item">
+                    <span className="clients-strip__bullet" />{item}
                   </li>
                 ))}
               </ul>
-            </div>
+            </StripCell>
           ))}
+          </div>
         </div>
       </div>
       <div>

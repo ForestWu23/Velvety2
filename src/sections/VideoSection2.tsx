@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import RainEffect from '@/components/RainEffect'
 import WindowVideoCompare from '@/components/WindowVideoCompare'
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
-const img  = (f: string) => `${BASE}/assets/images/${f}`
 const vid  = (f: string) => `${BASE}/assets/videos/${f}`
 
-export default function VideoSection2() {
+type Props = {
+  onRainActiveChange?: (active: boolean) => void
+}
+
+export default function VideoSection2({ onRainActiveChange }: Props) {
   const sectionRef = useRef<HTMLElement>(null)
   const [rainOn, setRainOn] = useState(false)
 
@@ -14,28 +16,33 @@ export default function VideoSection2() {
     const el = sectionRef.current
     if (!el) return
     const io = new IntersectionObserver(
-      ([entry]) => setRainOn(entry.isIntersecting),
+      ([entry]) => {
+        const active = entry.isIntersecting
+        setRainOn(active)
+        onRainActiveChange?.(active)
+      },
       { rootMargin: '80px 0px' },
     )
     io.observe(el)
-    return () => io.disconnect()
-  }, [])
+    return () => {
+      io.disconnect()
+      onRainActiveChange?.(false)
+    }
+  }, [onRainActiveChange])
 
   return (
     <section
       ref={sectionRef}
-      className="video-section-2"
+      className={`video-section-2${rainOn ? ' is-active' : ''}`}
       aria-label="Project before and after comparison"
     >
       <div className="video-section-2__window">
-        <RainEffect
-          active={rainOn}
-          citySrc={img('city-footer.jpg')}
-          className="video-section-2__rain"
-        />
+        <div className="video-section-2__vignette" aria-hidden />
         <div className="video-section-2__content">
           <WindowVideoCompare
             active={rainOn}
+            playbackRate={0.5}
+            syncEndTimes
             left={{
               badge: 'Before',
               label: 'Project — Old',

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import BrandEyeLogo from '@/components/BrandEyeLogo'
 import BrandName from '@/components/BrandName'
+import SiteNavMenu from '@/components/SiteNavMenu'
 import { scrollToWorkSection } from '@/lib/scrollToWork'
 
 function isHomePath(pathname: string) {
@@ -50,15 +51,7 @@ export default function Navigation() {
           <BrandEyeLogo />
           <span><BrandName /></span>
         </Link>
-        <nav className="nav-links" aria-label="Primary navigation">
-          <Link to="/services">Services</Link>
-          <a href="#work" onClick={onWorkClick}>Work</a>
-          <Link to="/about">About</Link>
-          <Link to="/contact" className="nav-cta nav-cta--shine">
-            <span className="nav-cta__shine" aria-hidden="true" />
-            <span className="nav-cta__label">Start a project</span>
-          </Link>
-        </nav>
+        <SiteNavMenu variant="home" onHome={onHome} onWorkClick={onWorkClick} />
       </div>
     </header>
   )
